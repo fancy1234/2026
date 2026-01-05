@@ -61,7 +61,7 @@ jobs:
                 print(f'订阅文件下载失败: {sub_res.status_code}')
                 exit(1)
             
-            # 4. 保存文件 (防猜文件名)
+            # 4. 保存文件 (这里定义了文件名)
             save_name = 'vip_link_8848.txt'
             
             with open(save_name, 'w', encoding='utf-8') as f:
