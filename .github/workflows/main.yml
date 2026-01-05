@@ -1,10 +1,72 @@
-# ... 前面的代码不变 ...
+name: Update Sub
 
-            # 4. 保存文件 (把 sub.txt 改成一个只有你知道的复杂名字)
-            # 比如改成: my_vip_sub_889922.txt
-            with open('my_vip_sub_889922.txt', 'w', encoding='utf-8') as f:
+on:
+  schedule:
+    # 每天北京时间早8点、10点、晚8点自动运行
+    - cron: '0 0,2,12 * * *'
+  workflow_dispatch: # 允许手动点击运行
+
+permissions:
+  contents: write
+
+jobs:
+  update-subscription:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install requests
+
+    - name: Run Update Script
+      run: |
+        python -c "
+        import requests
+        import re
+        import os
+
+        # 1. 访问发布页
+        update_url = 'http://62.234.98.136/CHANGYOU/IOS/getioslink_new.php'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        
+        try:
+            print(f'正在访问发布页: {update_url}')
+            r = requests.get(update_url, headers=headers, timeout=30)
+            if r.status_code != 200:
+                print(f'发布页访问失败: {r.status_code}')
+                exit(1)
+            
+            content = r.text
+            # 2. 提取 .txt 链接
+            match = re.search(r'http://[\w.:/]+\.txt', content)
+            if not match:
+                print('Error: 未找到txt链接')
+                exit(1)
+                
+            real_sub_url = match.group(0)
+            print(f'找到真实订阅地址: {real_sub_url}')
+            
+            # 3. 下载订阅内容
+            sub_res = requests.get(real_sub_url, headers=headers, timeout=30)
+            if sub_res.status_code != 200:
+                print(f'订阅文件下载失败: {sub_res.status_code}')
+                exit(1)
+            
+            # 4. 保存文件 (防猜文件名)
+            save_name = 'vip_link_8848.txt'
+            
+            with open(save_name, 'w', encoding='utf-8') as f:
                 f.write(sub_res.text)
-            print('订阅已更新')
+            print(f'订阅已更新并保存为 {save_name}')
 
         except Exception as e:
             print(f'运行出错: {e}')
@@ -15,6 +77,5 @@
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        # 注意这里也要改成一样的名字
-        git add my_vip_sub_889922.txt
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update" && git push)
+        git add vip_link_8848.txt
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update sub" && git push)
