@@ -1,0 +1,20 @@
+# ... 前面的代码不变 ...
+
+            # 4. 保存文件 (把 sub.txt 改成一个只有你知道的复杂名字)
+            # 比如改成: my_vip_sub_889922.txt
+            with open('my_vip_sub_889922.txt', 'w', encoding='utf-8') as f:
+                f.write(sub_res.text)
+            print('订阅已更新')
+
+        except Exception as e:
+            print(f'运行出错: {e}')
+            exit(1)
+        "
+
+    - name: Commit and Push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        # 注意这里也要改成一样的名字
+        git add my_vip_sub_889922.txt
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update" && git push)
