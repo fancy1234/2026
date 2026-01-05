@@ -2,8 +2,14 @@ name: Update Sub
 
 on:
   schedule:
-    # 每天北京时间早8点、10点、晚8点自动运行
-    - cron: '0 0,2,12 * * *'
+    # ---------------- 时间设置 (UTC) ----------------
+    # 对应北京时间：
+    # 16:30 UTC -> 北京时间 00:30 (哪怕早更也能抓到)
+    # 17:30 UTC -> 北京时间 01:30 (核心更新时间)
+    # 18:30 UTC -> 北京时间 02:30 (防止机场晚点)
+    # 00:30 UTC -> 北京时间 08:30 (早晨补漏)
+    # 10:30 UTC -> 北京时间 18:30 (晚高峰补漏)
+    - cron: '30 16,17,18,0,10 * * *'
   workflow_dispatch: # 允许手动点击运行
 
 permissions:
@@ -35,7 +41,7 @@ jobs:
         # --- 配置区 ---
         # 1. 严格保留双斜杠
         base_url = 'http://62.234.98.136//houtai//applinks2//'
-        # 2. 你的文件名
+        # 2. 你的文件名 (保持不变，避免Karing重新订阅)
         save_file_name = 'vip_link_8848.txt'
         
         headers = {
@@ -70,16 +76,15 @@ jobs:
             ver = item['type']
             try:
                 print(f'正在检测 {ver} ... ', end='')
-                # 设置5秒超时，快速跳过无效链接
                 r = requests.get(url, headers=headers, timeout=5)
                 
-                # 判定成功：状态码200 且 文件内容长度 > 300字节 (排除空文件或报错页)
+                # 判定成功：状态码200 且 文件内容长度 > 300字节
                 if r.status_code == 200 and len(r.text) > 300:
                     print('✅ 成功！')
                     print(f'>> 锁定目标: {ver} 有效，停止后续检测。')
                     found_content = r.text
                     success_info = ver
-                    break # <--- 找到了就立刻停止，确保只要今天G在，就不会用昨天的
+                    break 
                 else:
                     print(f'❌ 无效 (状态:{r.status_code})')
             except Exception as e:
